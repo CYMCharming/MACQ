@@ -4,6 +4,11 @@ Copyright 2026 Yuanming Chen / CYMCharming
 This repository's original code is licensed under Apache-2.0.
 Upstream source and model weights are not relicensed by this repository.
 
+Separately fetched research dependency:
+- https://github.com/facebookresearch/SpinQuant/tree/8f47aa3f00e8662caf1a484153920a07e5281c3a
+  Copyright (c) Meta Platforms, Inc. and affiliates.
+  CC BY-NC 4.0: https://github.com/facebookresearch/SpinQuant/blob/8f47aa3f00e8662caf1a484153920a07e5281c3a/LICENSE
+
 Upstream dependencies and model families:
 - Kev: https://github.com/jaredpalmer/kev (Apache-2.0)
 - Laya: https://github.com/NandhaKishorM/laya (Apache-2.0)

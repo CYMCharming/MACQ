@@ -1,12 +1,10 @@
 {
-  "schema": "macq.public.w4a4.summary.v1",
-  "reference_implementation_commit": "78ad0cc41529b205054ca61339b085c01ee0dd04",
+  "schema": "macq.public.w4a4.summary.v2",
   "benchmark_manifest_sha256": "41e4ccc75326baaca3212085dd66e0127fb8bc122d5b06054a170a0a2a0a231d",
   "calibration_file_sha256": "be17333bff1f4b3c284ed9f37d97f55acf4edd8e4847732bdf4e65f7206b9f4d",
   "benchmark_suites": 22,
   "benchmark_decisions_per_model": 2871,
   "calibration_requests": 128,
-  "macq_weight_group_size": 128,
   "macq_reservoir_rows_per_layer": 16384,
   "macq_fit_rows": 8192,
   "macq_select_rows": 8192,
@@ -41,7 +39,47 @@
   "source_snapshot": "2026-11-23T00:07:36+08:00",
   "sums_verified_from_integer_counts": true,
   "public_files_sha256": {
-    "w4a4-models.csv": "8a7eca36fe0ad43f3f7b6f6bd6ce99d386abffc52d3bd28f581156f6b7ea2ae3",
-    "w4a4-suites.csv": "245083e1aa55808809c0c07578d07bcf69155315dc33ca1cabc0b215e5cb17af"
-  }
+    "w4a4-models.csv": "ab8a114fbdf88546e7ec5a86227d41b64e45170faab633f37587b0577645c246",
+    "w4a4-suites.csv": "65e35940febd5deef8d63146fc74090d363ac88f2f4bec5d47c3a581a50c63c4"
+  },
+  "macq_weight_quantizer": "symmetric per-output-channel W4 with MSE clipping",
+  "macq_activation_quantizer": "asymmetric dynamic A4, native value-head grouping at mixer output projections",
+  "calibration_source_sha256": "be17333bff1f4b3c284ed9f37d97f55acf4edd8e4847732bdf4e65f7206b9f4d",
+  "rotation": {
+    "training_objective": "native decision KD",
+    "updates": 100,
+    "effective_batch": 8,
+    "initial_learning_rate": 1.5,
+    "initialization_seed": 0,
+    "training_seed": 42,
+    "online_hadamard": true,
+    "artifact_sha256_by_model": {
+      "kev-0.8b": "4867ac302111fcd12f4363d3b9449c859ceaa4e6313b60dde3be082f4f77fb2c",
+      "kev-4b": "1f7a6c2081d8c4a998d29b825442a9d35b68a00d57052addf0e4b0c05f22b1c7",
+      "kev-9b": "f7b9cbbde48e5708a4a6eba0d677f753355ba846132feaa2b6a570f8406944c1",
+      "intern-decision-0.8b": "8040745a58199199aa1c1d401f716fc62a333defd7b1785d831f80df923c3c04",
+      "intern-decision-2b": "94b4001d1caa8488cba2b79e81251d26d2a26fdf7298c3ca629d650edc47ae45",
+      "intern-decision-4b": "3cdd6c7015c2fd308bffceda4e78d4a933011abb8275ba9239a90b7408612bb1",
+      "startlux-decision-0.8b": "aaa5172b325fa8beb816add89ae3087cca974d08630ec1bff4fd94a728c2fd88",
+      "startlux-decision-2b": "255b686fd11d140445b87f11fc73d87c2eccec3f150d6a511b4d621841b95bdd",
+      "startlux-decision-4b": "9623656ef5406ad68e03e450b4940fe0b8770a8a10165303797f3c4b8e1cc507",
+      "startlux-decision-9b": "5f0346b985a31dae031a46b13f89fa4422799b02844c2f692bdfe964557f9d35",
+      "laya": "47235297e6ed1c3a58981eb76ff276bd7ff6107d60e58190c8dae4a22460ba74"
+    }
+  },
+  "compensation_cap": {
+    "default": 0.1,
+    "per_model": {
+      "startlux-decision-0.8b": 0.05,
+      "startlux-decision-2b": null,
+      "startlux-decision-4b": null
+    },
+    "development_selected_models": [
+      "startlux-decision-0.8b",
+      "startlux-decision-2b",
+      "startlux-decision-4b"
+    ]
+  },
+  "main_score_snapshot_sha256": "dbebc879f4c352478a256acca0b56dfe405818da20504533c711caef86d08706",
+  "aligned_comparison_snapshot_sha256": "8a9c8be018f52ae007930c20e73ed07fc08ee6f9e5ec4796eb371e27f7d8711b"
 }

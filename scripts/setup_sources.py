@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import argparse
 import ast
+import json
 import subprocess
 from pathlib import Path
 
@@ -49,7 +50,7 @@ def acquire(destination: Path, family: str, revision: str) -> None:
         git(path, "init")
         git(path, "remote", "add", "origin", REPOSITORIES[family])
         git(path, "fetch", "--depth", "1", "origin", revision)
-        git(path, "checkout", "--detach", revision)
+        git(path, "-c", "core.autocrlf=false", "checkout", "--detach", revision)
     if git(path, "rev-parse", "HEAD") != revision:
         raise RuntimeError(f"Could not verify pinned source {family}")
     (path / "SOURCE_REVISION.txt").write_text(revision + "\n", encoding="utf-8")
@@ -58,11 +59,14 @@ def acquire(destination: Path, family: str, revision: str) -> None:
 
 def main() -> None:
     project_root = Path(__file__).resolve().parents[1]
+    rotation = json.loads((project_root / "src/s1q/rotation-source.json").read_text(encoding="utf-8"))
+    REPOSITORIES["rotation"] = rotation["repository"] + ".git"
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--destination", type=Path, default=project_root / "work/upstream")
     parser.add_argument("--families", nargs="+", choices=list(REPOSITORIES), default=list(REPOSITORIES))
     args = parser.parse_args()
     revisions = source_revisions(project_root)
+    revisions["rotation"] = rotation["commit"]
     for family in args.families:
         acquire(args.destination.resolve(), family, revisions[family])
 

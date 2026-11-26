@@ -1,0 +1,11 @@
+{
+  "repository": "https://github.com/facebookresearch/SpinQuant",
+  "commit": "8f47aa3f00e8662caf1a484153920a07e5281c3a",
+  "license": "CC-BY-NC-4.0",
+  "source_sha256": {
+    "LICENSE": "1d8ca66080a2701508a70be4ddad4be28c509bcc3397a682fb8edf767fdd7a00",
+    "train_utils/optimizer.py": "115bfba5260129bd818e60ea083d25a68519c66a3daf2c56a115caf14bcf1bb3",
+    "utils/quant_utils.py": "90c721fc5cd2bbfd20d8d9b7b6aa0f210e5bc5b095e728b5a6bc89ba8f6aebe8",
+    "utils/hadamard_utils.py": "b2d805ab9698a02410c2748c83ecc755a7d60785e1e7ee30b14e404b2300703b"
+  }
+}

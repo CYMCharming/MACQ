@@ -11,38 +11,10 @@ import hashlib
 import json
 from pathlib import Path
 
+from s1q.data import checked_datasets
 from s1q.optimization import add_arguments, run
 
 METHODS = "rtn,s1q-local,s1q2-beta05,awq-adapted,gptq-blockdiag-adapted,spinquant-nohad-adapted,spinquant-had-adapted,s1q-joint,s1q-ac,s1q-margin,s1q"
-
-
-def checked_datasets(manifest_path: Path):
-    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-    if manifest.get("schema") != "s1q.expanded-benchmarks.v1":
-        raise ValueError("Unsupported expanded benchmark manifest schema")
-    root = manifest_path.parent.resolve()
-    selected = []
-    names = set()
-    for entry in manifest["datasets"]:
-        if type(entry.get("ranking_eligible")) is not bool:
-            raise ValueError("ranking_eligible must be an explicit boolean")
-        if not entry["ranking_eligible"]:
-            continue
-        if entry.get("label_kind") not in ("upstream_dataset_gold", "native_annotation", "authored_reference_gold", "authored_scenario_gold"):
-            raise ValueError(f"Main rankings require audited independent labels: {entry.get('dataset_id')} / {entry.get('label_kind')}")
-        name = entry["dataset_id"]
-        if name == "development" or not name.replace("-", "").isalnum() or name in names:
-            raise ValueError(f"Invalid or duplicate evaluation dataset: {name}")
-        names.add(name)
-        path = (root / entry["path"]).resolve()
-        if not path.is_relative_to(root):
-            raise ValueError("A dataset path escaped the manifest directory")
-        if hashlib.sha256(path.read_bytes()).hexdigest() != entry["sha256"]:
-            raise ValueError(f"Dataset hash mismatch: {name}")
-        selected.append((name, path))
-    if not selected:
-        raise ValueError("No frozen rank-eligible datasets")
-    return manifest, selected
 
 
 def main():

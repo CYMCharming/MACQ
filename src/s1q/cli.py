@@ -48,9 +48,5 @@ def main(argv=None, *, default_methods="s1q,rtn", default_reservoir_size=128):
                    reservoir_blend=args.reservoir_blend,max_reservoir_rows=args.max_reservoir_rows,
                    decision_weighting=args.decision_weighting,selection_policy=args.selection_policy)
 
-def macq_main(argv=None):
-    return main(argv, default_methods="macq,rtn", default_reservoir_size=16384)
-
-
 if __name__ == "__main__":
     raise SystemExit(main())

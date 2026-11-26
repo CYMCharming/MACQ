@@ -6,7 +6,7 @@ Use Python 3.12 and a CUDA PyTorch build compatible with the pinned native adapt
 
 ```bash
 python -m pip install -e '.[models,test]'
-python scripts/setup_sources.py --families kev laya
+python scripts/setup_sources.py --families kev laya rotation
 python scripts/prepare_data.py shared --source-root work/upstream/kev --output work/data/shared
 ```
 
@@ -24,27 +24,36 @@ python scripts/prepare_expanded_benchmarks.py \
   --output work/data/expanded --seed 20261007 --count 128 \
   --benchmark-id expanded-native-decision-20261007-v2
 
-python scripts/run_expanded_benchmarks.py \
-  --model kev-4b --data-dir work/data/shared --benchmark-manifest work/data/expanded/manifest.json \
-  --output-dir work/kev4-expanded --methods macq,rtn --bits 4 --activation-bits 4 \
-  --group-size 128 --calibration-count 128 --reservoir-size 16384 --seed 20261004
+macq optimize --model kev-4b --data-dir work/data/shared \
+  --benchmark-manifest work/data/expanded/manifest.json --output-dir work/kev4-expanded
 ```
 
-Compare the per-suite file hashes against the [frozen benchmark manifest](../configs/benchmarks/expanded-20261007/manifest.json). The local manifest can differ in provenance fields. The [score manifest](../benchmarks/protocol.json) records the calibration hash and checkpoint manifests used for the published result table. The evaluator writes the configuration, model and dataset identities, per-question logits, and per-suite summaries to the run directory. Exact scores depend on the recorded checkpoint, runtime and dataset admission.
+The entry point uses W4A4 and fits orthogonal rotations for 100 updates with an effective batch size of eight native calibration requests. For exact replay with an existing rotation artifact, pass `--rotation-checkpoint /path/to/trained-rotations.pt` and compare its hash with the benchmark record. Check the per-suite file hashes against the frozen manifest. The local manifest can differ in provenance fields. [Frozen benchmark suite manifest](../configs/benchmarks/expanded-20261007/manifest.json) · [Calibration, model, and rotation hashes](../benchmarks/protocol.json)
+
+The runner writes packed weights, learned rotations, and a payload manifest in a fresh output directory. With `--benchmark-manifest` it also writes `scores.json` and per-question predictions after the fit. Exact scores depend on the recorded checkpoint, runtime, and dataset admission.
 
 ## Python API
 
 ```python
-from s1q.api import quantize_macq
+import torch
+
+from s1q.api import load_macq, quantize_macq
 from s1q.data import load_records
 from s1q.models import load_model
 
 adapter = load_model('kev-4b', source_dir='work/upstream')
 adapter.model.eval()
 calibration = load_records('work/data/shared/calibration.jsonl')
-session, details = quantize_macq(adapter, calibration)
-with session:
+with quantize_macq(
+    adapter, calibration, rotation_source='work/upstream/rotation',
+    output_dir='work/kev4-packed',
+), torch.inference_mode():
     logits = adapter.infer(calibration[0])
+
+with load_macq(
+    adapter, 'work/kev4-packed', rotation_source='work/upstream/rotation',
+), torch.inference_mode():
+    reloaded_logits = adapter.infer(calibration[0])
 ```
 
-The API accepts already admitted calibration requests. The context manager restores the original model when it closes. For a smaller budget, pass `reservoir_size` explicitly. The `s1q` executable and import paths remain available for existing scripts.
+The fit accepts 128 admitted requests and strips labels before computing margins. The context managers restore the original model on exit. Dependency revisions and source hashes are checked at runtime. [Third-party notices](../NOTICE)
