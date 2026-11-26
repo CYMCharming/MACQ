@@ -1,0 +1,47 @@
+{
+  "schema": "macq.public.w4a4.summary.v1",
+  "reference_implementation_commit": "78ad0cc41529b205054ca61339b085c01ee0dd04",
+  "benchmark_manifest_sha256": "41e4ccc75326baaca3212085dd66e0127fb8bc122d5b06054a170a0a2a0a231d",
+  "calibration_file_sha256": "be17333bff1f4b3c284ed9f37d97f55acf4edd8e4847732bdf4e65f7206b9f4d",
+  "benchmark_suites": 22,
+  "benchmark_decisions_per_model": 2871,
+  "calibration_requests": 128,
+  "macq_weight_group_size": 128,
+  "macq_reservoir_rows_per_layer": 16384,
+  "macq_fit_rows": 8192,
+  "macq_select_rows": 8192,
+  "seed": 20261004,
+  "checkpoint_manifest_sha256_by_model": {
+    "kev-0.8b": "84cda21f01eb1a633ba1648a235965298be7bd7ade6591b4755043be8474ba0f",
+    "kev-4b": "67f5a6ba778f4c58a45f49150b5b100989d3fa030cbb5f5a0ba06618f6e02c2b",
+    "kev-9b": "d1d4bd32a76323dea848da7095a1818ecbc0feffc479eab0e836fe9f45345087",
+    "intern-decision-0.8b": "36b657c41a1d39de54e45ebc531ed3a0029387a9f5d7b884ede54ae72fe63b62",
+    "intern-decision-2b": "3d30a481b9e70ebc2ab20ddb6d15ed8b5387defca3bb71840e337a2f2b0c81b2",
+    "intern-decision-4b": "6cdcad04fd7c845e1507d64fcb4ddc3830f97e030687902917d1e669ac8ea7b1",
+    "startlux-decision-0.8b": "1ab59f8605c5496d7c342308e0c46a8b1d80229337ea86a7cd09064b2d2d5b82",
+    "startlux-decision-2b": "16febf2c8754ecdba237fc7c023898e35b2a943cc8fa0938c9abd1bc44fe05ef",
+    "startlux-decision-4b": "151681a8e7cc472130028076f8e771cc451855dd6f79ab3394d8625289f5d2da",
+    "startlux-decision-9b": "4dfd72fee706269cd984c20a9435a7606ef0ef1671529f673f6d9cc777106819",
+    "laya": "f713db6a8aec9ec481d5a29cd6369d6a886bf789dd8850e108304b2168356c80"
+  },
+  "method_keys": {
+    "native-bf16": "Native BF16",
+    "rtn": "RTN",
+    "hqq": "HQQ + A4",
+    "gptq": "GPTQ + A4",
+    "awq": "AWQ + A4",
+    "smoothquant": "SmoothQuant W4A4",
+    "omniquant-linear": "OmniQuant (Linear)",
+    "omniquant-attention": "OmniQuant (Attention)",
+    "adaround": "AdaRound + A4",
+    "spinquant-no-had": "SpinQuant (no Had)",
+    "spinquant-had": "SpinQuant (Had)",
+    "macq": "MACQ@16K"
+  },
+  "source_snapshot": "2026-11-23T00:07:36+08:00",
+  "sums_verified_from_integer_counts": true,
+  "public_files_sha256": {
+    "w4a4-models.csv": "8a7eca36fe0ad43f3f7b6f6bd6ce99d386abffc52d3bd28f581156f6b7ea2ae3",
+    "w4a4-suites.csv": "245083e1aa55808809c0c07578d07bcf69155315dc33ca1cabc0b215e5cb17af"
+  }
+}

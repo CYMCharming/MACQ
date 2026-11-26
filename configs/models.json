@@ -63,5 +63,10 @@
     "family": "startlux-decision",
     "repo_id": "startlux-models/StartLux-Decision-4B",
     "revision": "9302aedb7f7bd889994336f2ae919dffbf5dbee1"
+  },
+  "startlux-decision-9b": {
+    "family": "startlux-decision",
+    "repo_id": "startlux-models/StartLux-Decision-v1-9B",
+    "revision": "342aad64840be8eee314455428a5a775f18ef547"
   }
 }

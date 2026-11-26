@@ -36,6 +36,7 @@ MODEL_REVISIONS = {
     "startlux-decision-0.8b": ("startlux-models/StartLux-Decision-0.8B", "bd4f76a600e23227547fee7bfc1825e12a32764c"),
     "startlux-decision-2b": ("startlux-models/StartLux-Decision-2B", "3e2e456409a7fe44be69eee231566f7830872ea2"),
     "startlux-decision-4b": ("startlux-models/StartLux-Decision-4B", "9302aedb7f7bd889994336f2ae919dffbf5dbee1"),
+    "startlux-decision-9b": ("startlux-models/StartLux-Decision-v1-9B", "342aad64840be8eee314455428a5a775f18ef547"),
 }
 SOURCE_REVISIONS = {
     "kev": "0fe8fc97c2bcc247fa3efb6e5c32af4e99770e91",

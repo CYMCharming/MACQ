@@ -30,12 +30,12 @@ BASES = ("rtn", "s1q-local", "s1q2-beta05", "awq-adapted", "gptq-blockdiag-adapt
          "spinquant-nohad-adapted", "spinquant-had-adapted")
 NEW = ("s1q-joint", "s1q-ac", "s1q-margin", "s1q-mac", "awq-ac", "awq-mac",
        "gptq-ac", "gptq-mac", "spinquant-nohad-mac", "spinquant-had-mac")
-ALL = ("s1q", "s1q-repair") + BASES + NEW + tuple(f"{base}-repair" for base in BASES + NEW if base != "rtn")
+ALL = ("macq", "s1q", "s1q-repair") + BASES + NEW + tuple(f"{base}-repair" for base in BASES + NEW if base != "rtn")
 
 
 def implementation_method(method):
-    """Preserve frozen experiment aliases while publishing the method as S1Q."""
-    return "s1q-mac" if method == "s1q" else method
+    """Resolve the public name and its historical aliases to the same recipe."""
+    return "s1q-mac" if method in ("macq", "s1q") else method
 
 
 def identity(record, index):
@@ -159,7 +159,7 @@ def run(args):
             else:
                 important = actual in ("s1q-margin", "s1q-mac", "awq-mac", "gptq-mac", "spinquant-nohad-mac", "spinquant-had-mac")
                 session, meta = quantize_optimized_model(
-                    adapter.backbone, method="s1q" if method.removesuffix("-repair") == "s1q" else actual,
+                    adapter.backbone, method="s1q" if method.removesuffix("-repair") in ("macq", "s1q") else actual,
                     statistics=margin if important else ordinary,
                     bits=args.bits, group_size=args.group_size, activation_bits=args.activation_bits,
                     compensation=actual not in ("s1q-joint", "s1q-margin"))
@@ -208,18 +208,18 @@ def run(args):
     return report
 
 
-def add_arguments(parser, *, default_methods="s1q,rtn"):
+def add_arguments(parser, *, default_methods="s1q,rtn", default_reservoir_size=128):
     parser.add_argument("--model", required=True)
     parser.add_argument("--data-dir", required=True)
     parser.add_argument("--output-dir", required=True)
     parser.add_argument("--methods", default=default_methods,
-                        help="Comma-separated methods; s1q is the current decision-margin/compensation method")
+                        help="Comma-separated methods. macq selects the margin-aware compensation recipe.")
     parser.add_argument("--bits", type=int, default=4, choices=(2,3,4,8))
     parser.add_argument("--activation-bits", type=int, default=4, choices=(4,8))
     parser.add_argument("--group-size", type=int, default=128)
     parser.add_argument("--calibration-count", type=int, default=128)
     parser.add_argument("--development-count", type=int, default=256)
-    parser.add_argument("--reservoir-size", type=int, default=128)
+    parser.add_argument("--reservoir-size", type=int, default=default_reservoir_size)
     parser.add_argument("--seed", type=int, default=20261004)
     parser.add_argument("--device", default="cuda")
     parser.add_argument("--dtype", default="bf16")

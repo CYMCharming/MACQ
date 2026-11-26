@@ -3,12 +3,13 @@ import json
 from .experiment import run_experiment
 from .models import MODEL_REVISIONS
 
-def main():
-    parser=argparse.ArgumentParser(description="S1Q paired decision-model quantization experiments")
+def main(argv=None, *, default_methods="s1q,rtn", default_reservoir_size=128):
+    parser=argparse.ArgumentParser(description="MACQ paired decision-model quantization experiments")
     sub=parser.add_subparsers(dest="command",required=True)
     from .optimization import add_arguments
-    add_arguments(sub.add_parser("optimize", help="Current S1Q and matched low-bit baseline evaluation"))
-    run=sub.add_parser("run", help="Legacy v0.1 experiment workflow; use optimize for current S1Q")
+    add_arguments(sub.add_parser("optimize", help="MACQ and matched low-bit baseline evaluation"),
+                  default_methods=default_methods, default_reservoir_size=default_reservoir_size)
+    run=sub.add_parser("run", help="Compatibility workflow for earlier experiments")
     run.add_argument("--model",required=True,choices=tuple(MODEL_REVISIONS))
     run.add_argument("--data",required=True)
     run.add_argument("--output",required=True)
@@ -32,10 +33,11 @@ def main():
     run.add_argument("--decision-weighting",default="teacher",choices=["teacher","correct_boundary"])
     run.add_argument("--selection-policy",default="decision_preservation",
                      choices=["decision_preservation","accuracy_first"])
-    args=parser.parse_args()
+    args=parser.parse_args(argv)
     if args.command == "optimize":
         from .optimization import run as run_optimization
-        return run_optimization(args)
+        report = run_optimization(args)
+        return int(any(row["status"] != "complete" for row in report["methods"].values()))
     run_experiment(args.model,args.data,args.output,device=args.device,dtype=args.dtype,
                    source_dir=args.source_dir,checkpoint_dir=args.checkpoint_dir,
                    checkpoint_manifest=args.checkpoint_manifest,
@@ -46,4 +48,9 @@ def main():
                    reservoir_blend=args.reservoir_blend,max_reservoir_rows=args.max_reservoir_rows,
                    decision_weighting=args.decision_weighting,selection_policy=args.selection_policy)
 
-if __name__ == "__main__": main()
+def macq_main(argv=None):
+    return main(argv, default_methods="macq,rtn", default_reservoir_size=16384)
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

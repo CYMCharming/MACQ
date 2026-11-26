@@ -1,4 +1,4 @@
-"""Public calibration-and-quantization entry point for the current S1Q."""
+"""Public calibration-and-quantization entry points for MACQ."""
 from __future__ import annotations
 
 from copy import deepcopy
@@ -41,3 +41,14 @@ def quantize_s1q(adapter, calibration_records: Iterable[dict], *, bits=4,
     return session, {"method": "S1Q", "calibration": collector.metadata(),
                      "layers": layer_metadata,
                      "activation_execution": "floating QDQ; no integer kernel"}
+
+
+def quantize_macq(adapter, calibration_records: Iterable[dict], *, bits=4,
+                  activation_bits=4, group_size=128, reservoir_size=16384,
+                  seed=20261004):
+    """Apply MACQ with the 16K per-layer reservoir used in the W4A4 benchmark."""
+    session, metadata = quantize_s1q(
+        adapter, calibration_records, bits=bits, activation_bits=activation_bits,
+        group_size=group_size, reservoir_size=reservoir_size, seed=seed,
+    )
+    return session, {**metadata, "method": "MACQ"}

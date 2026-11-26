@@ -1,79 +1,50 @@
-# Reproducing the current S1Q
+# Reproduce MACQ
 
-The public name is **S1Q**. New runs use `--methods s1q`; frozen October 4 runs used the compatible key `s1q-mac`. The public and frozen aliases produce identical quantized codes/scales for identical inputs. The legacy `s1q run` workflow remains available for v0.1 experiments.
+## Install and prepare inputs
 
-## Installation and native data
-
-From a checkout, with Python 3.12 and an appropriate CUDA PyTorch build:
+Use Python 3.12 and a CUDA PyTorch build compatible with the pinned native adapters. The [model manifest](../configs/models.json) records upstream checkpoints. [CI constraints](../.github/constraints.txt) pin the CPU test environment.
 
 ```bash
 python -m pip install -e '.[models,test]'
-python scripts/setup_sources.py --families kev laya NanoJev
-python scripts/prepare_data.py shared --output work/data/shared \
-  --source-root work/upstream/kev --calibration 128 \
-  --temperature-calibration 128 --development 256 --test 1024
-python scripts/prepare_data.py nanojev --output work/data/nanojev \
-  --calibration 128 --temperature-calibration 128 --development 256 --test 1024
+python scripts/setup_sources.py --families kev laya
+python scripts/prepare_data.py shared --source-root work/upstream/kev --output work/data/shared
 ```
 
-The preparer preserves upstream/native schema, hard-label eligibility, source-group disjointness and source hashes. It writes several splits; the current optimization runner reads only `calibration.jsonl` and `development.jsonl`, plus explicitly named additional cohorts. Preparing a test file does not authorize using it for method development. Model weights are acquired by the pinned native loader or provided through `--checkpoint-dir` and an optional checksum manifest; no model weights are committed here.
+`--checkpoint-dir` accepts a local checkpoint. Pass `--checkpoint-manifest` to verify its revision and weight hashes. A local Intern-Decision or StartLux-Decision checkpoint also needs the publisher's inference code and its hashes in the manifest. Load each StartLux checkpoint in its own process. `STARTLUX_ALLOW_SLOW=1` enables the reference runtime used for StartLux in this benchmark.
 
-The reviewed model/runtime pins live in [models.py](../src/s1q/models.py), [model audit](model-audit.md) and [runtime notes](runtime.md). Install-time packages and the exact frozen experimental environments differ. Exact numerical reproduction requires the recorded checkpoint/source/data hashes and environment, not just a method name. Some native requests may be rejected before quantization; the accepted rows are then fixed identically for all methods. NanoJev uses recorded action-argmax compatibility labels.
+## Run the W4A4 benchmark
 
-## Current method and ablations
+Acquire [Intern-Decision evaluation data](https://github.com/InternLM/Intern-Decision/tree/3572c8a68b5df5dafe02d0e093989ba8ec0183bc/benchmarks/accuracy-v1) at the recorded revision, then recreate the 22 suites locally.
 
 ```bash
-CUDA_VISIBLE_DEVICES=0 s1q optimize --model kev-4b \
-  --data-dir work/data/shared --output-dir work/runs/kev4-current-w4a4 \
-  --methods rtn,s1q-local,s1q2-beta05,s1q-joint,s1q-ac,s1q-margin,s1q \
-  --bits 4 --activation-bits 4 --group-size 128 \
-  --calibration-count 128 --development-count 256 \
-  --reservoir-size 128 --seed 20261004
+python scripts/prepare_expanded_benchmarks.py \
+  --source-root work/upstream/kev \
+  --intern-source-root work/upstream/Intern-Decision/benchmarks/accuracy-v1 \
+  --exclusion-registry configs/benchmarks/expanded-20261007/exclusion_registry.json \
+  --output work/data/expanded --seed 20261007 --count 128 \
+  --benchmark-id expanded-native-decision-20261007-v2
+
+python scripts/run_expanded_benchmarks.py \
+  --model kev-4b --data-dir work/data/shared --benchmark-manifest work/data/expanded/manifest.json \
+  --output-dir work/kev4-expanded --methods macq,rtn --bits 4 --activation-bits 4 \
+  --group-size 128 --calibration-count 128 --reservoir-size 16384 --seed 20261004
 ```
 
-Use model names `kev-0.8b`, `kev-4b`, `kev-9b`, `laya` with shared text data, or `nanojev` with its separate data. Change `--bits 3` for W3A4, or `--activation-bits 8` for W4A8; give each run a new output directory. W4A8 is a supported recipe, not a claimed completed result in the current October 4 evidence. Current S1Q requires gradients through the native forward during calibration, even though it does not fit model parameters.
+Compare the per-suite file hashes against the [frozen benchmark manifest](../configs/benchmarks/expanded-20261007/manifest.json). The local manifest can differ in provenance fields. The [score manifest](../benchmarks/protocol.json) records the calibration hash and checkpoint manifests used for the published result table. The evaluator writes the configuration, model and dataset identities, per-question logits, and per-suite summaries to the run directory. Exact scores depend on the recorded checkpoint, runtime and dataset admission.
 
-The registered Intern-Decision and StartLux-Decision 0.8B/2B/4B checkpoints
-use the same text data through their own native compilers. Follow the
-[extension guide](decision-model-extensions.md) for pinned acquisition,
-native parity checks, separate-process loading and text-runtime scope before
-using their `intern-decision-*` or `startlux-decision-*` names.
+## Python API
 
-The default `s1q optimize` methods are `s1q,rtn`. The script entry point can also be used from an installed checkout:
+```python
+from s1q.api import quantize_macq
+from s1q.data import load_records
+from s1q.models import load_model
 
-```bash
-python scripts/run_optimization.py --model kev-4b \
-  --data-dir work/data/shared --output-dir work/runs/kev4-script \
-  --methods s1q,rtn --bits 4 --activation-bits 4
+adapter = load_model('kev-4b', source_dir='work/upstream')
+adapter.model.eval()
+calibration = load_records('work/data/shared/calibration.jsonl')
+session, details = quantize_macq(adapter, calibration)
+with session:
+    logits = adapter.infer(calibration[0])
 ```
 
-Without `--methods`, that historical script still runs its older full comparison set. The package CLI is the preferred current-method entry point.
-
-## Adapted controls and extra evaluation
-
-Append any supported controls to the method list: `awq-adapted`, `gptq-blockdiag-adapted`, `spinquant-nohad-adapted`, `spinquant-had-adapted`; extension keys are `awq-ac`, `awq-mac`, `gptq-ac`, `gptq-mac`, `spinquant-nohad-mac` and `spinquant-had-mac`. All are explicitly adapted/proxy controls. SmoothQuant is separately available through the baseline API, but was not run by this frozen optimization batch. The optional `-repair` keys are extra optimization controls, not part of final S1Q.
-
-To evaluate a prepared native-schema cohort without using it for calibration:
-
-```bash
-s1q optimize --model kev-4b --data-dir work/data/shared \
-  --output-dir work/runs/kev4-extra --methods s1q,rtn \
-  --extra-evaluation wanli=work/data/extra/wanli-native.jsonl \
-  --extra-evaluation mmlupro=work/data/extra/mmlupro-native.jsonl
-```
-
-Additional cohorts require the same native schema as prepared rows and explicit labels for evaluation. Names must be unique and filename-safe. Request/group overlap with calibration or another cohort fails explicitly. The frozen study used a prespecified 256-row WANLI sample and 156 eligible short MMLU-Pro rows; supplying different cohorts produces a new experiment, not the frozen scores.
-
-## Outputs and audit
-
-A run records:
-
-- `frozen-config-before-evaluation.json`: methods and settings before model load/evaluation.
-- `identity.json` and `report.json`: native checkpoint metadata, hashes, eligibility, calibration scope, per-method status, probabilities and storage estimates.
-- `native-<cohort>.jsonl` and `<method>-<cohort>.jsonl`: locally saved matched predictions.
-
-The calibration fit/select split is within the saved token reservoir, not independent requests. Extra evaluation labels never select quantization candidates. Gain-repair uses only the calibration teacher and is separately marked.
-
-`python scripts/summarize_optimization.py --help` exposes an offline raw-logit audit/report generator. It recomputes the full metric set and paired source-cluster intervals without loading a model. Do not publish source datasets or raw predictions automatically: review upstream licensing and disclosure scope first. Store fresh runs under ignored `work/` by default.
-
-The current inference path uses floating QDQ. Exporting `session.artifact()`/`session.export(path)` packs selected linears, not a complete model or integer GEMM runtime. An export from a new run must be independently checked against its QDQ predictions before claiming deployment equivalence. Historical release artifacts and resource measurements belong to v0.1.
+The API accepts already admitted calibration requests. The context manager restores the original model when it closes. For a smaller budget, pass `reservoir_size` explicitly. The `s1q` executable and import paths remain available for existing scripts.

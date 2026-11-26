@@ -1,4 +1,4 @@
-S1Q: Low-Bit Quantization for System One Decision Models
+MACQ: Margin-aware Activation Compensation Quantization of Decision Models
 Copyright 2026 Yuanming Chen / CYMCharming
 
 This repository's original code is licensed under Apache-2.0.
@@ -8,7 +8,7 @@ Upstream dependencies and model families:
 - Kev: https://github.com/jaredpalmer/kev (Apache-2.0)
 - Laya: https://github.com/NandhaKishorM/laya (Apache-2.0)
 - NanoJev source: https://github.com/TianyuCodings/NanoJev (MIT).
-  Fine-tuned NanoJev weights are not redistributed by S1Q; see docs/artifacts.md.
+  NanoJev weights are not redistributed by this repository.
 - Intern-Decision: https://github.com/InternLM/Intern-Decision (Apache-2.0).
   Its pinned model weights are Apache-2.0 and are not redistributed here.
 - StartLux-Decision: https://github.com/StartLuxLabs/StartLux-Decision.
@@ -21,11 +21,10 @@ S1Q weight release assets modify selected backbone linear weights through
 quantization (and Kev adapter merging); retained native components are required
 separately. Preserve this NOTICE, LICENSE and upstream notices when redistributing.
 
-Quantization methods and ideas are credited in docs/method.md and
-docs/related-work.md. Similarity of interfaces does not establish identity of
+Quantization methods and ideas are credited in docs/method.md. Similarity of interfaces does not establish identity of
 architecture, training recipe, or calibration quality with hosted TypeSafe Jev.
 
 Dataset licensing and target provenance are documented in
-docs/evaluation-design.md. Derived artifacts inherit applicable upstream terms.
+docs/results.md and the frozen benchmark manifest. Derived artifacts inherit applicable upstream terms.
 Source data, teacher receipts, private credentials and raw upstream clones must
 not be included in public Git history.

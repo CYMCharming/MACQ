@@ -12,6 +12,8 @@ models=json.loads(Path(args.manifest).read_text())
 for name in args.models:
     cfg=models[name]
     patterns=["*.json","*.safetensors","*.pt","*.txt","*.jinja","tokenizer/*","backbone_config/*"]
+    if cfg["family"] in ("intern-decision", "startlux-decision"):
+        patterns += ["inference.py", "startlux_decision/*.py"]
     path=snapshot_download(cfg["repo_id"],revision=cfg["revision"],allow_patterns=patterns)
     print(json.dumps({"model":name,"checkpoint":path}),flush=True)
     if name.startswith("kev-"):
